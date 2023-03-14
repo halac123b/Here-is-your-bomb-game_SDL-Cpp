@@ -1,0 +1,16 @@
+{
+  "files.associations": {
+    "iostream": "cpp",
+    "ostream": "cpp",
+    "fstream": "cpp",
+    "xlocale": "cpp",
+    "xlocinfo": "cpp",
+    "xstring": "cpp",
+    "vector": "cpp",
+    "xiosbase": "cpp",
+    "xutility": "cpp",
+    "string": "cpp",
+    "sdl2_rotozoom.h": "c",
+    "sdl2_gfxprimitives_font.h": "c"
+  }
+}
