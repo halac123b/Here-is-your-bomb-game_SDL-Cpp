@@ -2,11 +2,12 @@
 #define MENU_H
 
 #include "CommonFunc.h"
-#include "TextObject.h"
+#include "BaseObject.h"
 
-struct Menu
+class Menu : public BaseObject
 {
-  void initMenu(SDL_Renderer *screen, SDL_Event event, TextObject textObject);
+public:
+  void initMenu(SDL_Renderer *screen, SDL_Event event);
   bool initState;
 };
 

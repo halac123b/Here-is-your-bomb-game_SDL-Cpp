@@ -47,6 +47,7 @@ TeamObject::TeamObject(int index)
   }
   indexControl = 0;
   point = 0;
+  special = 1;
 }
 
 void TeamObject::removeSoldier()
@@ -67,11 +68,11 @@ void TeamObject::removeSoldier(int index, SDL_Renderer *screen)
   {
     if (side == 1)
     {
-      soldierList[soldierList.size() - 1].loadImg("img/soldier1.png", screen);
+      soldierList[soldierList.size() - 1].loadImg("img/g" + to_string(soldierList.size()) + ".png", screen);
     }
     else if (side == 2)
     {
-      soldierList[soldierList.size() - 1].loadImg("img/soldier2.png", screen);
+      soldierList[soldierList.size() - 1].loadImg("img/r" + to_string(soldierList.size()) + ".png", screen);
     }
   }
   if (getIndexControl() >= soldierList.size())

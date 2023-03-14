@@ -3,6 +3,7 @@
 
 #include "CommonFunc.h"
 #include "TeamObject.h"
+#include "Sound.h"
 
 #define BALLEXISTFRAME 600
 #define BALLSPAWNFRAME 60
@@ -16,6 +17,7 @@ private:
   int travelFrame;
 
 public:
+  Sound sound;
   int velocityX, velocityY;
   int existFrame;
   int isHolding;

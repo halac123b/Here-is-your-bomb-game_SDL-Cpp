@@ -94,16 +94,26 @@ void Bomb::exist()
   if (travelFrame == 0)
     velocityX = velocityY = 0;
   // ball's traveling
+  if (existFrame == 240)
+  {
+    sound.Load("audio/beep.mp3");
+    sound.Play(0, 4);
+  }
   if ((velocityX == 0) && (velocityY == 0))
     return;
-  posX += velocityX;
-  posY += velocityY;
+  posX += (velocityX * travelFrame / 120) * 2;
+  posY += (velocityY * travelFrame / 120) * 2;
 }
 
 void Bomb::explode(TeamObject &team1, TeamObject &team2, SDL_Renderer *screen)
 {
   if (existFrame != 0)
     return;
+  if (radius == BALLSIZE)
+  {
+    sound.Load("audio/explosion.mp3");
+    sound.Play(0, 1);
+  }
   radius += 4;
   isHolding = 0;
   if (radius > explosionRadius)
@@ -120,11 +130,14 @@ void Bomb::respawnBall()
   if (existFrame >= 0)
     return;
   existFrame--;
+
   // spawn the ball but can't be controled
   if (-existFrame == BALLSPAWNFRAME / 2)
   {
     posX = SCREEN_WIDTH / 2; // random in range 101 - 400
     posY = 666 / 2 - 150 + rand() % 300;
+    sound.Load("audio/respawn.mp3");
+    sound.Play(0, 2);
   }
   if (-existFrame > BALLSPAWNFRAME / 2)
   {
@@ -134,33 +147,33 @@ void Bomb::respawnBall()
   if (-existFrame > BALLSPAWNFRAME)
   {
     radius = BALLSIZE;
-    explosionRadius = (int)(1.3 * explosionRadius);
+    explosionRadius = (int)(3.5 * explosionRadius);
     existFrame = BALLEXISTFRAME;
   }
 }
 
 void Bomb::damage(TeamObject &team1, TeamObject &team2, SDL_Renderer *screen)
 {
-  if (explosionRadius > 800)
-  {
-    team1.point += 4;
-    team2.point += 4;
-    return;
-  }
+  // if (explosionRadius > 800)
+  // {
+  //   team1.point += 4;
+  //   team2.point += 4;
+  //   return;
+  // }
   // squared distance
   long int d;
   // Big tower
   for (int i = 0; i < 2; i++)
   {
-    if (sqrD(posX, posY, team1.bigTurret[i].getRect().x + 30, team1.bigTurret[i].getRect().y + 30) < explosionRadius * explosionRadius)
+    if ((sqrD(posX, posY, team1.bigTurret[i].getRect().x, team1.bigTurret[i].getRect().y) < explosionRadius * explosionRadius) || (sqrD(posX, posY, team1.bigTurret[i].getRect().x + team1.bigTurret[i].getRect().w, team1.bigTurret[i].getRect().y + team1.bigTurret[i].getRect().h) < explosionRadius * explosionRadius) || ((sqrD(posX, posY, team1.bigTurret[i].getRect().x + team1.bigTurret[i].getRect().w, team1.bigTurret[i].getRect().y) < explosionRadius * explosionRadius)) || (sqrD(posX, posY, team1.bigTurret[i].getRect().x, team1.bigTurret[i].getRect().y + team1.bigTurret[i].getRect().h) < explosionRadius * explosionRadius))
       team2.point += 1;
-    if (sqrD(posX, posY, team2.bigTurret[i].getRect().x + 30, team2.bigTurret[i].getRect().y + 30) < explosionRadius * explosionRadius)
+    if ((sqrD(posX, posY, team2.bigTurret[i].getRect().x + 30, team2.bigTurret[i].getRect().y + 30) < explosionRadius * explosionRadius) || (sqrD(posX, posY, team2.bigTurret[i].getRect().x + team2.bigTurret[i].getRect().w, team2.bigTurret[i].getRect().y + team2.bigTurret[i].getRect().h) < explosionRadius * explosionRadius) || ((sqrD(posX, posY, team2.bigTurret[i].getRect().x + team2.bigTurret[i].getRect().w, team2.bigTurret[i].getRect().y) < explosionRadius * explosionRadius)) || (sqrD(posX, posY, team2.bigTurret[i].getRect().x, team2.bigTurret[i].getRect().y + team2.bigTurret[i].getRect().h) < explosionRadius * explosionRadius))
       team1.point += 1;
   }
 
   for (int i = 0; i < team1.soldierList.size(); i++)
   {
-    if (sqrD(posX, posY, team1.soldierList[i].getRect().x + 30, team1.soldierList[i].getRect().y + 30) < explosionRadius * explosionRadius)
+    if ((sqrD(posX, posY, team1.soldierList[i].getRect().x + 30, team1.soldierList[i].getRect().y + 30) < explosionRadius * explosionRadius) || (sqrD(posX, posY, team1.soldierList[i].getRect().x + team1.soldierList[i].getRect().w, team1.soldierList[i].getRect().y + team1.soldierList[i].getRect().h) < explosionRadius * explosionRadius))
     {
       team1.removeSoldier(i, screen);
       i--;
@@ -168,7 +181,7 @@ void Bomb::damage(TeamObject &team1, TeamObject &team2, SDL_Renderer *screen)
   }
   for (int i = 0; i < team2.soldierList.size(); i++)
   {
-    if (sqrD(posX, posY, team2.soldierList[i].getRect().x + 30, team2.soldierList[i].getRect().y + 30) < explosionRadius * explosionRadius)
+    if ((sqrD(posX, posY, team2.soldierList[i].getRect().x + 30, team2.soldierList[i].getRect().y + 30) < explosionRadius * explosionRadius) || (sqrD(posX, posY, team2.soldierList[i].getRect().x + team2.soldierList[i].getRect().w, team2.soldierList[i].getRect().y + team2.soldierList[i].getRect().h) < explosionRadius * explosionRadius))
     {
       team2.removeSoldier(i, screen);
       i--;
@@ -188,12 +201,18 @@ void Bomb::collision(TeamObject &team)
   {
     return;
   }
+  sound.Load("audio/bounce.mp3");
+  bool flag = false;
   int nextX = posX + velocityX;
   int nextY = posY + velocityY;
   SDL_Rect screenRect = {5, 5, SCREEN_WIDTH - 15, 666 - 10};
   // top & left edges of inner yard collision
   if (isInside(posX, nextY, screenRect) == false)
+  {
     velocityY = -velocityY;
+    flag = true;
+  }
+
   if (team.side == 1)
   {
     // with towers
@@ -201,26 +220,53 @@ void Bomb::collision(TeamObject &team)
     {
       // left edge of inner yard collision
       if (isInside(nextX, posY, screenRect) == false)
+      {
         velocityX = -velocityX;
+        flag = true;
+      }
       // towerA2 collision
       if (isInside(posX, nextY, team.smallTurret.getRect()) == true)
+      {
         velocityY = -velocityY;
+        flag = true;
+      }
+
       if (isInside(nextX, posY, team.smallTurret.getRect()) == true)
+      {
         velocityX = -velocityX;
-      return;
+        flag = true;
+      }
     }
+
     if (posX >= SCREEN_WIDTH * 0.15 && posX < SCREEN_WIDTH * 0.25)
     {
       // towerA1 collision
       if (isInside(posX, nextY, team.bigTurret[0].getRect()) == true)
+      {
+        flag = true;
         velocityY = -velocityY;
+      }
       if (isInside(nextX, posY, team.bigTurret[0].getRect()) == true)
+      {
         velocityX = -velocityX;
+        flag = true;
+      }
       // towerA3 collision
       if (isInside(posX, nextY, team.bigTurret[1].getRect()) == true)
+      {
+        flag = true;
         velocityY = -velocityY;
+      }
+
       if (isInside(nextX, posY, team.bigTurret[1].getRect()) == true)
+      {
         velocityX = -velocityX;
+        flag = true;
+      }
+    }
+    if (flag)
+    {
+      sound.Play(0, 3);
     }
   }
 
@@ -230,27 +276,53 @@ void Bomb::collision(TeamObject &team)
     {
       // towerB1 collision
       if (isInside(posX, nextY, team.bigTurret[0].getRect()) == true)
+      {
+        flag = true;
         velocityY = -velocityY;
+      }
       if (isInside(nextX, posY, team.bigTurret[0].getRect()) == true)
+      {
         velocityX = -velocityX;
+        flag = true;
+      }
       // towerB3 collision
       if (isInside(posX, nextY, team.bigTurret[1].getRect()) == true)
+      {
         velocityY = -velocityY;
+        flag = true;
+      }
+
       if (isInside(nextX, posY, team.bigTurret[1].getRect()) == true)
+      {
         velocityX = -velocityX;
+        flag = true;
+      }
     }
     if (posX >= SCREEN_WIDTH * 0.9)
     {
       // right edge of inner yard collision
       if (isInside(nextX, posY, screenRect) == false)
+      {
         velocityX = -velocityX;
+        flag = true;
+      }
       // towerB2 collision
       if (isInside(posX, nextY, team.smallTurret.getRect()) == true)
+      {
         velocityY = -velocityY;
+        flag = true;
+      }
+
       if (isInside(nextX, posY, team.smallTurret.getRect()) == true)
+      {
         velocityX = -velocityX;
-      return;
+        flag = true;
+      }
     }
+  }
+  if (flag)
+  {
+    sound.Play(0, 3);
   }
 }
 

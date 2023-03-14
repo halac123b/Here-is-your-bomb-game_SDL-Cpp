@@ -6,6 +6,7 @@
 #include "Timer.h"
 #include "Bomb.h"
 #include "ExplosionObject.h"
+#include "Sound.h"
 
 #define FPS 60
 
@@ -27,6 +28,7 @@ bool initData()
                               SDL_WINDOWPOS_UNDEFINED,
                               SCREEN_WIDTH, SCREEN_HEIGHT,
                               SDL_WINDOW_SHOWN);
+  Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
   if (g_window == NULL)
   {
     success = false;
@@ -72,6 +74,11 @@ void initSoldier(TeamObject &team)
     team.soldierList.push_back(soldier);
     soldier.setRect(SCREEN_WIDTH * 0.25, 666 * 0.8);
     team.soldierList.push_back(soldier);
+
+    for (int i = 0; i < 3; i++)
+    {
+      team.soldierList[i].loadImg("img/g" + to_string(i) + ".png", g_screen);
+    }
   }
   else if (team.side == 2)
   {
@@ -83,13 +90,15 @@ void initSoldier(TeamObject &team)
     team.soldierList.push_back(soldier);
     soldier.setRect(SCREEN_WIDTH * 0.65, 666 * 0.8);
     team.soldierList.push_back(soldier);
-  }
-  for (int i = 0; i < 3; i++)
-  {
-    team.soldierList[i].loadImg("img/soldier" + to_string(team.side) + ".png", g_screen);
+
+    for (int i = 0; i < 3; i++)
+    {
+      team.soldierList[i].loadImg("img/r" + to_string(i) + ".png", g_screen);
+    }
   }
   team.point = 0;
   team.setIndexControl(0);
+  team.special = 1;
 }
 
 bool loadBackground()
@@ -120,9 +129,12 @@ int main(int argc, char *argv[])
 
   TextObject textObject;
   Timer timerFPS;
+  Sound sound;
+  sound.Load("audio/background.mp3");
+  sound.Play(-1, 6);
 
   Menu menu;
-  menu.initMenu(g_screen, g_event, textObject);
+  menu.initMenu(g_screen, g_event);
 
   if (loadBackground() == false)
   {
@@ -134,11 +146,15 @@ int main(int argc, char *argv[])
   font = TTF_OpenFont("font/FreeSans.ttf", 50);
   textObject.setTextColor(0, 0, 0);
 
+  BaseObject redArrow, greenArrow;
+  redArrow.loadImg("img/rArrow.png", g_screen);
+  greenArrow.loadImg("img/gArrow.png", g_screen);
+
   // Init and load image team Red
   TeamObject teamRed(2);
   for (int i = 0; i < 3; i++)
   {
-    teamRed.soldierList[i].loadImg("img/soldier2.png", g_screen);
+    teamRed.soldierList[i].loadImg("img/r" + to_string(i) + ".png", g_screen);
   }
   teamRed.smallTurret.loadImg("img/smallTurret2.png", g_screen);
   for (int i = 0; i < 2; i++)
@@ -150,7 +166,7 @@ int main(int argc, char *argv[])
   TeamObject teamGreen(1);
   for (int i = 0; i < 3; i++)
   {
-    teamGreen.soldierList[i].loadImg("img/soldier1.png", g_screen);
+    teamGreen.soldierList[i].loadImg("img/g" + to_string(i) + ".png", g_screen);
   }
   teamGreen.smallTurret.loadImg("img/smallTurret1.png", g_screen);
   for (int i = 0; i < 2; i++)
@@ -301,6 +317,38 @@ int main(int argc, char *argv[])
           }
           else
           {
+            if (key == SDLK_e && teamGreen.special == 1)
+            {
+              velX = 10;
+              velY = 0;
+              if (velX != 0)
+              {
+                if (velY != 0)
+                  bomb.setVelocity(velX * 5 / 7, velY * 5 / 7);
+                else
+                  bomb.setVelocity(velX, 0);
+              }
+              else
+                bomb.setVelocity(0, velY);
+              velX = velY = 0;
+              teamGreen.special = 0;
+            }
+            if (key == SDLK_KP_0 && teamRed.special == 1)
+            {
+              velX = -10;
+              velY = 0;
+              if (velX != 0)
+              {
+                if (velY != 0)
+                  bomb.setVelocity(velX * 5 / 7, velY * 5 / 7);
+                else
+                  bomb.setVelocity(velX, 0);
+              }
+              else
+                bomb.setVelocity(0, velY);
+              velX = velY = 0;
+              teamRed.special = 0;
+            }
             if (key == SDLK_SPACE)
             {
               if (SDLCommonFunc::checkCollison(teamGreen.soldierList[teamGreen.getIndexControl()].getRect(), bombRect))
@@ -334,20 +382,32 @@ int main(int argc, char *argv[])
         bomb.setPos(teamGreen.soldierList[teamGreen.getIndexControl()].getRect().x, teamGreen.soldierList[teamGreen.getIndexControl()].getRect().y);
       }
 
-      for (int i = 0; i < teamRed.soldierList.size(); i++)
-      {
-        teamRed.soldierList[i].render(g_screen);
-      }
       teamRed.smallTurret.render(g_screen);
       for (int i = 0; i < 2; i++)
       {
         teamRed.bigTurret[i].render(g_screen);
       }
 
+      teamGreen.smallTurret.render(g_screen);
+      for (int i = 0; i < 2; i++)
+      {
+        teamGreen.bigTurret[i].render(g_screen);
+      }
+      for (int i = 0; i < teamRed.soldierList.size(); i++)
+      {
+        teamRed.soldierList[i].render(g_screen);
+      }
       for (int i = 0; i < teamGreen.soldierList.size(); i++)
       {
         teamGreen.soldierList[i].render(g_screen);
       }
+
+      // Render arrow
+      greenArrow.setRect(teamGreen.soldierList[teamGreen.getIndexControl()].getRect().x, teamGreen.soldierList[teamGreen.getIndexControl()].getRect().y - 46);
+      greenArrow.render(g_screen);
+
+      redArrow.setRect(teamRed.soldierList[teamRed.getIndexControl()].getRect().x, teamRed.soldierList[teamRed.getIndexControl()].getRect().y - 46);
+      redArrow.render(g_screen);
 
       bomb.renderCircle(g_screen); // Render bomb
       bomb.render(g_screen);
@@ -355,12 +415,7 @@ int main(int argc, char *argv[])
       if (velX != 0 || velY != 0)
         bomb.renderIndicator(g_screen, velX, velY);
 
-      teamGreen.smallTurret.render(g_screen);
-      for (int i = 0; i < 2; i++)
-      {
-        teamGreen.bigTurret[i].render(g_screen);
-      }
-
+      font = TTF_OpenFont("font/FreeSans.ttf", 60);
       textObject.setTextColor(0, 0, 0);
       string text;
       text = to_string(teamGreen.point);
@@ -382,12 +437,28 @@ int main(int argc, char *argv[])
         //     color.g = 0;
         //     color.b = 0;
         // }
+
         text = to_string(timerBall);
         textObject.setContent(text);
         textObject.loadFromRenderText(font, g_screen);
         textObject.renderText(g_screen, SCREEN_WIDTH * 0.5, SCREEN_HEIGHT * 0.9);
       }
 
+      if (teamGreen.special == 1)
+      {
+        textObject.setTextColor(0, 128, 0);
+        textObject.setContent("S");
+        textObject.loadFromRenderText(font, g_screen);
+        textObject.renderText(g_screen, 28, SCREEN_HEIGHT * 0.9);
+      }
+
+      if (teamRed.special == 1)
+      {
+        textObject.setTextColor(255, 0, 0);
+        textObject.setContent("S");
+        textObject.loadFromRenderText(font, g_screen);
+        textObject.renderText(g_screen, SCREEN_WIDTH - 58, SCREEN_HEIGHT * 0.9);
+      }
       bomb.collision(teamRed);
       bomb.collision(teamGreen);
 
@@ -465,37 +536,36 @@ int main(int argc, char *argv[])
         }
       }
 
-      font = TTF_OpenFont("font/FreeSans.ttf", 60);
+      font = TTF_OpenFont("font/FreeSans.ttf", 80);
       textObject.setTextColor(255, 255, 255);
-      string result = "";
       switch (winTeam)
       {
       case (0):
-        result = "Draw!";
+        menu.loadImg("img/draw.png", g_screen);
         break;
       case (1):
-        result = "Team Green Win!!";
+        menu.loadImg("img/greenWin.png", g_screen);
         break;
       case (2):
-        result = "Team Red Win!!";
+        menu.loadImg("img/redWin.png", g_screen);
         break;
       }
-      // printf("%s", result.c_str());
-      textObject.setContent(result);
-      textObject.loadFromRenderText(font, g_screen);
-      textObject.renderText(g_screen, SCREEN_WIDTH * 0.4, SCREEN_HEIGHT * 0.45);
+      menu.render(g_screen);
 
-      result = "Play again";
-      textObject.setContent(result);
+      textObject.setContent(to_string(teamGreen.point));
       textObject.loadFromRenderText(font, g_screen);
-      textObject.renderText(g_screen, SCREEN_WIDTH * 0.4, SCREEN_HEIGHT * 0.7);
+      textObject.renderText(g_screen, 250, 403);
+
+      textObject.setContent(to_string(teamRed.point));
+      textObject.loadFromRenderText(font, g_screen);
+      textObject.renderText(g_screen, 661, 403);
 
       SDL_PollEvent(&g_event);
       if (g_event.type == SDL_MOUSEBUTTONDOWN && g_event.button.button == SDL_BUTTON_LEFT)
       {
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
-        if (mouseX >= SCREEN_WIDTH * 0.4 && mouseX <= SCREEN_WIDTH * 0.4 + textObject.getWidth() && mouseY >= SCREEN_HEIGHT * 0.7 && mouseY <= SCREEN_HEIGHT * 0.7 + textObject.getHeight())
+        if (mouseX >= 352 && mouseX <= 652 && mouseY >= 569 && mouseY <= 664)
         {
           isPlaying = true;
           initSoldier(teamGreen);

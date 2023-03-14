@@ -1,19 +1,17 @@
 #include "Menu.h"
 
-void Menu::initMenu(SDL_Renderer *screen, SDL_Event event, TextObject textObject)
+void Menu::initMenu(SDL_Renderer *screen, SDL_Event event)
 {
   initState = true;
 
   font = TTF_OpenFont("font/FreeSans.ttf", 120);
   SDL_Rect backRect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-  textObject.setTextColor(255, 255, 255);
+  loadImg("img/start.png", screen);
 
   while (initState)
   {
     // SDL_RenderFillRect(screen, &backRect);
-    textObject.setContent("Start game");
-    textObject.loadFromRenderText(font, screen);
-    textObject.renderText(screen, SCREEN_WIDTH * 0.3, SCREEN_HEIGHT * 0.5);
+    render(screen);
     SDL_RenderPresent(screen);
 
     SDL_PollEvent(&event);
@@ -25,7 +23,7 @@ void Menu::initMenu(SDL_Renderer *screen, SDL_Event event, TextObject textObject
     {
       int mouseX, mouseY;
       SDL_GetMouseState(&mouseX, &mouseY);
-      if (mouseX >= SCREEN_WIDTH * 0.3 && mouseX <= SCREEN_WIDTH * 0.3 + textObject.getWidth() && mouseY >= SCREEN_HEIGHT * 0.5 && mouseY <= SCREEN_HEIGHT * 0.5 + textObject.getHeight())
+      if (mouseX >= 349 && mouseX <= 651 && mouseY >= 568 && mouseY <= 664)
       {
         initState = false;
       }

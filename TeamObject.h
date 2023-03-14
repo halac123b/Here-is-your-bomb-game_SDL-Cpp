@@ -23,6 +23,7 @@ public:
   vector<BigTurret> bigTurret;
   int point;
   int side;
+  int special;
 
 private:
   int indexControl;
