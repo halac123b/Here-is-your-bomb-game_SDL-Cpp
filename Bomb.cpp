@@ -101,8 +101,8 @@ void Bomb::exist()
   }
   if ((velocityX == 0) && (velocityY == 0))
     return;
-  posX += (velocityX * travelFrame / 120) * 2;
-  posY += (velocityY * travelFrame / 120) * 2;
+  posX += (velocityX * travelFrame / 100) * 2;
+  posY += (velocityY * travelFrame / 100) * 2;
 }
 
 void Bomb::explode(TeamObject &team1, TeamObject &team2, SDL_Renderer *screen)
@@ -147,7 +147,7 @@ void Bomb::respawnBall()
   if (-existFrame > BALLSPAWNFRAME)
   {
     radius = BALLSIZE;
-    explosionRadius = (int)(3.5 * explosionRadius);
+    explosionRadius = (int)(1.5 * explosionRadius);
     existFrame = BALLEXISTFRAME;
   }
 }

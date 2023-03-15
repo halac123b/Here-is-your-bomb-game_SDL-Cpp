@@ -206,13 +206,20 @@ int main(int argc, char *argv[])
           if (key == SDLK_q)
           {
             teamGreen.switchPlayer();
-            bomb.isHolding = 0;
+            if (bomb.isHolding == 1)
+            {
+              bomb.isHolding = 0;
+            }
             velX = velY = 0;
           }
           if (key == SDLK_SLASH)
           {
             teamRed.switchPlayer();
-            bomb.isHolding = 0;
+            if (bomb.isHolding == 2)
+            {
+              bomb.isHolding = 0;
+            }
+
             velX = velY = 0;
           }
           if (bomb.isHolding != 0)
@@ -288,7 +295,8 @@ int main(int argc, char *argv[])
             }
             else if ((key == SDLK_SPACE && bomb.isHolding == 2) || (key == SDLK_RSHIFT && bomb.isHolding == 1))
             {
-              if (SDLCommonFunc::checkCollison(teamGreen.soldierList[teamGreen.getIndexControl()].getRect(), bombRect) || SDLCommonFunc::checkCollison(teamRed.soldierList[teamRed.getIndexControl()].getRect(), bombRect))
+              if ((SDLCommonFunc::checkCollison(teamGreen.soldierList[teamGreen.getIndexControl()].getRect(), bombRect) && bomb.isHolding == 2) ||
+                  (SDLCommonFunc::checkCollison(teamRed.soldierList[teamRed.getIndexControl()].getRect(), bombRect) && bomb.isHolding == 1))
               {
                 velX = -velX;
                 velY = -velY;
@@ -421,7 +429,7 @@ int main(int argc, char *argv[])
       text = to_string(teamGreen.point);
       textObject.setContent(text);
       textObject.loadFromRenderText(font, g_screen);
-      textObject.renderText(g_screen, SCREEN_WIDTH * 0.25, SCREEN_HEIGHT * 0.9);
+      textObject.renderText(g_screen, SCREEN_WIDTH * 0.22, SCREEN_HEIGHT * 0.9);
 
       text = to_string(teamRed.point);
       textObject.setContent(text);
